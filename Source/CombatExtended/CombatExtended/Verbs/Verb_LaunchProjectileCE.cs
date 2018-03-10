@@ -38,6 +38,7 @@ namespace CombatExtended
         protected CompCharges compCharges = null;
         protected CompAmmoUser compAmmo = null;
         protected CompFireModes compFireModes = null;
+        protected CompChangeableProjectile compChangeable = null;
         private float shotSpeed = -1;
         
         private float rotationDegrees = 0f;
@@ -50,12 +51,12 @@ namespace CombatExtended
         #region Properties
 
         public VerbPropertiesCE VerbPropsCE => this.verbProps as VerbPropertiesCE;
-        public ProjectilePropertiesCE projectilePropsCE => this.ProjectileDef.projectile as ProjectilePropertiesCE;
+        public ProjectilePropertiesCE projectilePropsCE => this.Projectile.projectile as ProjectilePropertiesCE;
 
         // Returns either the pawn aiming the weapon or in case of turret guns the turret operator or null if neither exists
         public Pawn ShooterPawn => CasterPawn ?? CE_Utility.TryGetTurretOperator(this.caster);
-	public Thing Shooter => ShooterPawn ?? caster;
-
+        public Thing Shooter => ShooterPawn ?? caster;
+		
         protected CompCharges CompCharges
         {
             get
@@ -81,13 +82,9 @@ namespace CombatExtended
                             shotSpeed = bracket.x;
                         }
                     }
-                    else if (CompAmmo != null && CompAmmo.CurrentAmmo != null)
-                    {
-                    	shotSpeed = CompAmmo.CurAmmoProjectile.projectile.speed;
-                    }
                     else
                     {
-                        shotSpeed = verbProps.projectileDef.projectile.speed;
+                    	shotSpeed = Projectile.projectile.speed;
                     }
                 }
                 return shotSpeed;
@@ -120,7 +117,7 @@ namespace CombatExtended
                 return compAmmo;
             }
         }
-        public ThingDef ProjectileDef
+        public ThingDef Projectile
         {
             get
             {
@@ -128,8 +125,24 @@ namespace CombatExtended
                 {
                 	return CompAmmo.CurAmmoProjectile;
                 }
-                return this.VerbPropsCE.projectileDef;
+                if (CompChangeable != null && CompChangeable.Loaded)
+                {
+                	return CompChangeable.Projectile;
+                }
+                return this.VerbPropsCE.defaultProjectile;
             }
+        }
+        
+        protected CompChangeableProjectile CompChangeable
+        {
+        	get
+        	{
+	            if (compChangeable == null && ownerEquipment != null)
+	            {
+	                compChangeable = ownerEquipment.TryGetComp<CompChangeableProjectile>();
+	            }
+	            return compChangeable;
+        	}
         }
         
         protected CompFireModes CompFireModes
@@ -149,15 +162,6 @@ namespace CombatExtended
         #region Methods
 
         /// <summary>
-        /// Highlights explosion radius of the projectile if it has one
-        /// </summary>
-        /// <returns>Projectile explosion radius</returns>
-        public override float HighlightFieldRadiusAroundTarget()
-        {
-            return ProjectileDef.projectile.explosionRadius;
-        }
-
-        /// <summary>
         /// Resets current burst shot count and estimated distance at beginning of the burst
         /// </summary>
         public override void WarmupComplete()
@@ -171,6 +175,14 @@ namespace CombatExtended
 
             this.numShotsFired = 0;
             base.WarmupComplete();
+            Find.BattleLog.Add(
+            	new BattleLogEntry_RangedFire(
+            		Shooter,
+            		(!currentTarget.HasThing) ? null : currentTarget.Thing,
+            		(ownerEquipment == null) ? null : ownerEquipment.def,
+            		Projectile,
+            		VerbPropsCE.burstShotCount > 1)
+            );
         }
         
         /// <summary>
@@ -216,8 +228,8 @@ namespace CombatExtended
 	            
 	            var coverRange = new CollisionVertical(report.cover).HeightRange;	//Get " " cover, assume it is the edifice
 	            
-	            // Projectiles with flyOverhead target the ground below the target and ignore cover
-	            if (ProjectileDef.projectile.flyOverhead)
+	            // Projectiles with flyOverhead target the surface in front of the target
+	            if (Projectile.projectile.flyOverhead)
 	            {
 	            	targetHeight = coverRange.max;
 	            }
@@ -225,17 +237,21 @@ namespace CombatExtended
 	            {
                     var victimVert = new CollisionVertical(currentTarget.Thing);
                     var targetRange = victimVert.HeightRange;	//Get lower and upper heights of the target
-	           		if (targetRange.min < coverRange.max)	//Some part of the target is hidden behind cover
+                    /*if (currentTarget.Thing is Building && CompFireModes?.CurrentAimMode == AimMode.SuppressFire)
+                    {
+                    	targetRange.min = targetRange.max;
+                    	targetRange.max = targetRange.min + 1f;
+                    }*/
+	           		if (targetRange.min < coverRange.max)	//Some part of the target is hidden behind some cover
 	           		{
-	           			// - It is possible for targetVertical.max < coverVertical.max, technically, in which case the shooter will never hit until the cover is gone.
+	           			// - It is possible for targetRange.max < coverRange.max, technically, in which case the shooter will never hit until the cover is gone.
                         // - This should be checked for in LoS -NIA
 	           			targetRange.min = coverRange.max;
 
-                        // Shift aim upwards if we're doing suppressive fire
+                        // Target fully hidden, shift aim upwards if we're doing suppressive fire
                         if (targetRange.max <= coverRange.max && CompFireModes?.CurrentAimMode == AimMode.SuppressFire)
                         {
                             targetRange.max = coverRange.max * 2;
-                            targetRange.min = coverRange.max;
                         }
 	           		}
                     else if (currentTarget.Thing is Pawn)
@@ -246,7 +262,7 @@ namespace CombatExtended
                     }
 	           		targetHeight = targetRange.Average;
 	            }
-	            angleRadians += ProjectileCE.GetShotAngle(ShotSpeed, (newTargetLoc - sourceLoc).magnitude, targetHeight - ShotHeight, ProjectileDef.projectile.flyOverhead, projectilePropsCE.Gravity);
+	            angleRadians += ProjectileCE.GetShotAngle(ShotSpeed, (newTargetLoc - sourceLoc).magnitude, targetHeight - ShotHeight, Projectile.projectile.flyOverhead, projectilePropsCE.Gravity);
         	}
         	
 	        // ----------------------------------- STEP 4: Mechanical variation
@@ -386,7 +402,7 @@ namespace CombatExtended
                         && (targetThing == null || !newCover.Equals(targetThing))
                         && (highestCover == null || highestCoverHeight < newCoverHeight)
                         && newCover.def.Fillage == FillCategory.Partial
-                        && !newCover.IsTree())
+                        && !newCover.IsPlant())
                     {
                         highestCover = newCover;
                         highestCoverHeight = newCoverHeight;
@@ -436,7 +452,7 @@ namespace CombatExtended
                 return true;
             }
             // Check thick roofs
-            if (ProjectileDef.projectile.flyOverhead)
+            if (Projectile.projectile.flyOverhead)
             {
                 RoofDef roofDef = caster.Map.roofGrid.RoofAt(targ.Cell);
                 if (roofDef != null && roofDef.isThickRoof)
@@ -445,18 +461,32 @@ namespace CombatExtended
                     return false;
                 }
             }
-            // Check for apparel
-            if (ShooterPawn != null && ShooterPawn.apparel != null)
+            if (ShooterPawn != null)
             {
-                List<Apparel> wornApparel = ShooterPawn.apparel.WornApparel;
-                foreach(Apparel current in wornApparel)
-                {
-                    if (!current.AllowVerbCast(root, caster.Map, targ))
-                    {
-                        report = "Shooting disallowed by " + current.LabelShort;
-                        return false;
-                    }
-                }
+            	// Check for capable of violence
+            	if (ShooterPawn.story != null
+		  && ShooterPawn.story.WorkTagIsDisabled(WorkTags.Violent))
+        	    {
+					report = "IsIncapableOfViolenceLower".Translate(new object[]
+					{
+						ShooterPawn.NameStringShort
+					});
+            		return false;
+        	    }
+            	
+           		// Check for apparel
+            	if (ShooterPawn.apparel != null)
+            	{
+	                List<Apparel> wornApparel = ShooterPawn.apparel.WornApparel;
+	                foreach(Apparel current in wornApparel)
+	                {
+	                    if (!current.AllowVerbCast(root, caster.Map, targ))
+	                    {
+	                        report = "Shooting disallowed by " + current.LabelShort;
+	                        return false;
+	                    }
+	                }
+            	}
             }
             // Check for line of sight
             ShootLine shootLine;
@@ -500,14 +530,23 @@ namespace CombatExtended
            	bool pelletMechanicsOnly = false;
             for (int i = 0; i < projectilePropsCE.pelletCount; i++)
             {
-                ProjectileCE projectile = (ProjectileCE)ThingMaker.MakeThing(ProjectileDef, null);
+                ProjectileCE projectile = (ProjectileCE)ThingMaker.MakeThing(Projectile, null);
                 GenSpawn.Spawn(projectile, shootLine.Source, caster.Map);
 	           	ShiftTarget(report, pelletMechanicsOnly);
 
                 //New aiming algorithm
                 projectile.canTargetSelf = false;
                 projectile.minCollisionSqr = (sourceLoc - currentTarget.Cell.ToIntVec2.ToVector2Shifted()).sqrMagnitude;
-                projectile.Launch(Shooter, sourceLoc, shotAngle, shotRotation, ShotHeight, ShotSpeed, ownerEquipment); //Shooter instead of caster to give turret operators' records the damage/kills obtained
+                projectile.intendedTarget = currentTarget.Thing;
+                projectile.Launch(
+                	Shooter,	//Shooter instead of caster to give turret operators' records the damage/kills obtained
+                	sourceLoc,
+                	shotAngle,
+                	shotRotation,
+                	ShotHeight,
+                	ShotSpeed,
+                	ownerEquipment
+                );
 	           	pelletMechanicsOnly = true;
             }
            	pelletMechanicsOnly = false;
@@ -556,7 +595,7 @@ namespace CombatExtended
                 return false;
             }
             //if (!this.verbProps.NeedsLineOfSight) This method doesn't consider the currently loaded projectile
-            if (ProjectileDef.projectile.flyOverhead)
+            if (Projectile.projectile.flyOverhead)
             {
                 resultingLine = new ShootLine(root, targ.Cell);
                 return true;
@@ -688,10 +727,11 @@ namespace CombatExtended
                     {
                         cover = cell.GetCover(caster.Map);
                     }
-                    if (cover != null && cover != ShooterPawn && cover != caster && cover != targetThing && !cover.IsTree() && !cover.Position.AdjacentTo8Way(sourceSq))
+					
+                    if (cover != null && cover != ShooterPawn && cover != caster && cover != targetThing && !cover.IsPlant() && !cover.Position.AdjacentTo8Way(sourceSq))
                     {
                         Bounds bounds = CE_Utility.GetBoundsFor(cover);
-
+						
                         // Check for intersect
                         if (bounds.IntersectRay(shotLine))
                         {

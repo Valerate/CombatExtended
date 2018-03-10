@@ -98,16 +98,20 @@
 
 	<!-- The amount of arrows usable over the ammo lifetime for each resource cost is equal to
 		[r / (1 - x)];
-			x = explosionSpawnChance,
+			x = preExplosionSpawnChance,
 			r = resource cost. -->
 
 	<ThingDef ParentName="BaseCrossbowBoltProjectile">
 		<defName>Projectile_CrossbowBolt_Stone</defName>
 		<label>crossbow bolt (stone)</label>
+		<graphicData>
+			<texPath>Things/Projectile/Arrows/Arrow_Stone</texPath>
+			<graphicClass>Graphic_Single</graphicClass>
+		</graphicData>
 		<projectile>
 			<damageAmountBase>18</damageAmountBase>
 			<armorPenetration>0.25</armorPenetration>
-			<explosionSpawnChance>0.1</explosionSpawnChance>	<!-- 11.11 bolts per resource -->
+			<preExplosionSpawnChance>0.1</preExplosionSpawnChance>	<!-- 11.11 bolts per resource -->
 			<preExplosionSpawnThingDef>Ammo_CrossbowBolt_Stone</preExplosionSpawnThingDef>
 		</projectile>
 	</ThingDef>
@@ -115,10 +119,14 @@
 	<ThingDef ParentName="BaseCrossbowBoltProjectile">
 		<defName>Projectile_CrossbowBolt_Steel</defName>
 		<label>crossbow bolt (steel)</label>
+		<graphicData>
+			<texPath>Things/Projectile/Arrows/Arrow_Steel</texPath>
+			<graphicClass>Graphic_Single</graphicClass>
+		</graphicData>
 		<projectile>
 			<damageAmountBase>18</damageAmountBase>
 			<armorPenetration>0.35</armorPenetration>
-			<explosionSpawnChance>0.333</explosionSpawnChance>	<!-- 14.99 bolts per resource -->
+			<preExplosionSpawnChance>0.333</preExplosionSpawnChance>	<!-- 14.99 bolts per resource -->
 			<preExplosionSpawnThingDef>Ammo_CrossbowBolt_Steel</preExplosionSpawnThingDef>
 		</projectile>
 	</ThingDef>
@@ -126,10 +134,14 @@
 	<ThingDef ParentName="BaseCrossbowBoltProjectile">
 		<defName>Projectile_CrossbowBolt_Plasteel</defName>
 		<label>crossbow bolt (plasteel)</label>
+		<graphicData>
+			<texPath>Things/Projectile/Arrows/Arrow_Plasteel</texPath>
+			<graphicClass>Graphic_Single</graphicClass>
+		</graphicData>
 		<projectile>
 			<damageAmountBase>18</damageAmountBase>
 			<armorPenetration>0.45</armorPenetration>
-			<explosionSpawnChance>0.6</explosionSpawnChance>	<!-- 25 bolts per resource -->
+			<preExplosionSpawnChance>0.6</preExplosionSpawnChance>	<!-- 25 bolts per resource -->
 			<preExplosionSpawnThingDef>Ammo_CrossbowBolt_Plasteel</preExplosionSpawnThingDef>
 		</projectile>
 	</ThingDef>

@@ -21,7 +21,7 @@
 				<Properties>
 					<verbClass>CombatExtended.Verb_ShootCE</verbClass>
 					<hasStandardCommand>true</hasStandardCommand>
-					<projectileDef>Projectile_CrossbowBolt_Steel</projectileDef>
+					<defaultProjectile>Projectile_CrossbowBolt_Steel</defaultProjectile>
 					<warmupTime>2.6</warmupTime>
 					<range>16</range>
 					<soundCast>Interact_BeatFire</soundCast>
@@ -36,6 +36,35 @@
 				<weaponTags>
 					<li>CE_AI_Rifle</li>
 				</weaponTags>
+			</li>
+			<li Class="PatchOperationReplace">
+				<xpath>*/ThingDef[defName="RF_ShortCrossbow"]/tools</xpath>
+				<value>
+					<tools>
+						<li Class="CombatExtended.ToolCE">
+							<id>limb</id>
+							<label>limb</label>
+							<capacities>
+								<li>Blunt</li>
+							</capacities>
+							<power>8</power>
+							<cooldownTime>1.6</cooldownTime>
+							<armorPenetration>0.102</armorPenetration>
+							<linkedBodyPartsGroup>Base</linkedBodyPartsGroup>
+						</li>
+						<li Class="CombatExtended.ToolCE">
+							<id>nock</id>
+							<label>nock</label>
+							<capacities>
+								<li>Poke</li>
+							</capacities>
+							<power>8</power>
+							<cooldownTime>1.6</cooldownTime>
+							<armorPenetration>0.075</armorPenetration>
+							<linkedBodyPartsGroup>Point</linkedBodyPartsGroup>
+						</li>
+					</tools>
+				</value>
 			</li>
 		</operations>
 	</Operation>

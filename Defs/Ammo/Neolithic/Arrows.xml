@@ -48,7 +48,7 @@
       <graphicClass>Graphic_StackCount</graphicClass>
     </graphicData>
     <statBases>
-      <MarketValue>0.17</MarketValue>
+      <MarketValue>0.11</MarketValue>
     </statBases>
 		<ammoClass>StoneArrow</ammoClass>
     <tradeTags>
@@ -98,16 +98,20 @@
 
 	<!-- The amount of arrows usable over the ammo lifetime for each resource cost is equal to
 		[r / (1 - x)];
-			x = explosionSpawnChance,
+			x = preExplosionSpawnChance,
 			r = resource cost. -->
 	
 	<ThingDef ParentName="BaseArrowProjectile">
 		<defName>Projectile_Arrow_Stone</defName>
 		<label>arrow (stone)</label>
+		<graphicData>
+			<texPath>Things/Projectile/Arrows/Arrow_Stone</texPath>
+			<graphicClass>Graphic_Single</graphicClass>
+		</graphicData>
 		<projectile>
 			<damageAmountBase>11</damageAmountBase>
 			<armorPenetration>0.15</armorPenetration>
-			<explosionSpawnChance>0.333</explosionSpawnChance>	<!-- 14.99 arrows per resource -->
+			<preExplosionSpawnChance>0.333</preExplosionSpawnChance>	<!-- 14.99 arrows per resource -->
 			<preExplosionSpawnThingDef>Ammo_Arrow_Stone</preExplosionSpawnThingDef>
 		</projectile>
 	</ThingDef>
@@ -115,10 +119,14 @@
 	<ThingDef ParentName="BaseArrowProjectile">
 		<defName>Projectile_Arrow_Steel</defName>
 		<label>arrow (steel)</label>
+		<graphicData>
+			<texPath>Things/Projectile/Arrows/Arrow_Steel</texPath>
+			<graphicClass>Graphic_Single</graphicClass>
+		</graphicData>
 		<projectile>
 			<damageAmountBase>11</damageAmountBase>
 			<armorPenetration>0.20</armorPenetration>
-			<explosionSpawnChance>0.666</explosionSpawnChance>	<!-- 29.94 arrows per resource -->
+			<preExplosionSpawnChance>0.666</preExplosionSpawnChance>	<!-- 29.94 arrows per resource -->
 			<preExplosionSpawnThingDef>Ammo_Arrow_Steel</preExplosionSpawnThingDef>
 		</projectile>
 	</ThingDef>
@@ -126,10 +134,14 @@
 	<ThingDef ParentName="BaseArrowProjectile">
 		<defName>Projectile_Arrow_Plasteel</defName>
 		<label>arrow (plasteel)</label>
+		<graphicData>
+			<texPath>Things/Projectile/Arrows/Arrow_Plasteel</texPath>
+			<graphicClass>Graphic_Single</graphicClass>
+		</graphicData>
 		<projectile>
 			<damageAmountBase>11</damageAmountBase>
 			<armorPenetration>0.25</armorPenetration>
-			<explosionSpawnChance>0.8</explosionSpawnChance>	<!-- 50 arrows per resource -->
+			<preExplosionSpawnChance>0.8</preExplosionSpawnChance>	<!-- 50 arrows per resource -->
 			<preExplosionSpawnThingDef>Ammo_Arrow_Plasteel</preExplosionSpawnThingDef>
 		</projectile>
 	</ThingDef>
